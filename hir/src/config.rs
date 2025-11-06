@@ -20,15 +20,18 @@ impl Config {
     }
 
     pub fn client_name(&self) -> Ident {
-        Ident(format!("{}Client", self.name))
+        //Ident(format!("{}Client", self.name))
+        Ident("Client".into())
     }
 
     pub fn async_client_name(&self) -> String {
-        format!("Async{}Client", self.name)
+        //format!("Async{}Client", self.name)
+        "AsyncClient".into()
     }
 
     pub fn authenticator_name(&self) -> String {
-        format!("{}Auth", self.name)
+        //format!("{}Auth", self.name)
+        "Auth".into()
     }
 
     pub fn package_name(&self) -> String {

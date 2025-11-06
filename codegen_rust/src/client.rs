@@ -73,7 +73,7 @@ pub fn make_lib_rs(spec: &HirSpec, extras: &Extras, cfg: &Config) -> File<TokenS
         imports: vec![
             import!(std::sync, OnceLock),
             import!(std::borrow, Cow),
-            import!(httpclient, Client),
+            mir::Import::new("httpclient", [mir::ImportItem::alias("Client", "HttpClient")]),
         ],
         items: vec![
             Item::Block(base64_import),
@@ -143,7 +143,7 @@ fn build_Client_new(_spec: &HirSpec, opt: &Config) -> Function<TokenStream> {
             authentication,
         }
     };
-    rfunction!(pub new(client: Client, authentication: #auth_struct) -> Self).body(body)
+    rfunction!(pub new(client: HttpClient, authentication: #auth_struct) -> Self).body(body)
 }
 
 pub fn struct_Client(spec: &HirSpec, opt: &Config) -> Class<TokenStream> {
@@ -151,7 +151,7 @@ pub fn struct_Client(spec: &HirSpec, opt: &Config) -> Class<TokenStream> {
 
     let mut instance_fields = vec![Field {
         name: Ident::new("client"),
-        ty: quote!(Cow<'static, Client>),
+        ty: quote!(Cow<'static, HttpClient>),
         ..Field::default()
     }];
     if spec.has_security() {
@@ -456,15 +456,15 @@ pub fn impl_Authentication(spec: &HirSpec, opt: &Config) -> TokenStream {
 
 fn fn_default_http_client(spec: &HirSpec, opt: &Config) -> Function<TokenStream> {
     let url = server_url(spec, opt);
-    rfunction!(pub default_http_client() -> Client {
-        Client::new()
+    rfunction!(pub default_http_client() -> HttpClient {
+        HttpClient::new()
             .base_url(#url)
     })
 }
 
 fn static_shared_http_client() -> TokenStream {
     quote! {
-        static SHARED_HTTPCLIENT: OnceLock<Client> = OnceLock::new();
+        static SHARED_HTTPCLIENT: OnceLock<HttpClient> = OnceLock::new();
 
         /// Use this method if you want to add custom middleware to the httpclient.
         /// It must be called before any requests are made, otherwise it will have no effect.
@@ -475,11 +475,11 @@ fn static_shared_http_client() -> TokenStream {
         ///     .with_middleware(..)
         /// );
         /// ```
-        pub fn init_http_client(init: Client) {
+        pub fn init_http_client(init: HttpClient) {
             let _ = SHARED_HTTPCLIENT.set(init);
         }
 
-        fn shared_http_client() -> Cow<'static, Client> {
+        fn shared_http_client() -> Cow<'static, HttpClient> {
             Cow::Borrowed(SHARED_HTTPCLIENT.get_or_init(default_http_client))
         }
     }

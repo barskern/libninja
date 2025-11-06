@@ -57,7 +57,7 @@ pub fn make_single_module(operation: &Operation, spec: &HirSpec, cfg: &Config) -
         .unwrap_or_default();
 
     let mut imports: Vec<Import> = vec![
-        import!(crate, FluentRequest),
+        import!(crate, FluentRequest, Client),
         import!(serde, Serialize, Deserialize),
         import!(httpclient, InMemoryResponseExt),
     ];
