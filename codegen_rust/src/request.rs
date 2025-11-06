@@ -1,11 +1,8 @@
 use std::default::Default;
 use std::fs;
-use std::sync::OnceLock;
 
-use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
-use regex::Captures;
 
 use hir::{Config, HirSpec, Language, Location, Operation, Parameter};
 use mir::{import, Arg, Class, Doc, Field, File, Function, Ident, Import, Item, Ty, Visibility};
@@ -203,17 +200,16 @@ pub fn make_url(operation: &Operation) -> TokenStream {
             #path
         }
     } else {
-        static FIX_PLACEHOLDERS: OnceLock<regex::Regex> = OnceLock::new();
-        let fix = FIX_PLACEHOLDERS.get_or_init(|| regex::Regex::new("\\{([_\\w]+)\\}").unwrap());
-        let inputs = inputs.into_iter().map(|input| {
-            let name = input.name.to_rust_ident();
-            quote! { #name = self.params.#name }
-        });
-        let path = fix
-            .replace_all(&operation.path, |cap: &Captures| {
-                format!("{{{}}}", cap.get(1).unwrap().as_str().to_case(Case::Snake))
+        let mut path = operation.path.clone();
+        let inputs: Vec<_> = inputs
+            .into_iter()
+            .map(|input| {
+                let name = input.name.to_rust_ident();
+                path = path.replace(&input.name, &name.0);
+                quote! { #name = self.params.#name }
             })
-            .to_string();
+            .collect();
+
         quote! {
             &format!(#path, #(#inputs),*)
         }
