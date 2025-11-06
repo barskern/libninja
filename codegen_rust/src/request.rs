@@ -71,11 +71,7 @@ pub fn make_single_module(operation: &Operation, spec: &HirSpec, cfg: &Config) -
         .map(|s| s.to_rust_code());
 
     let assign_inputs = assign_inputs_to_request(&operation.parameters);
-    let output = if operation.ret.is_primitive() {
-        quote! { #response }
-    } else {
-        quote! { crate::model::#response }
-    };
+    let output = quote! { #response };
 
     let impl_block = quote! {
         impl FluentRequest<'_, #struct_name> {

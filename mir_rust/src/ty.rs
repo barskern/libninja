@@ -27,7 +27,10 @@ impl ToRustType for Ty {
                 let inner = inner.to_rust_type();
                 quote!(Vec<#inner>)
             }
-            Ty::Model(inner, ..) => inner.to_rust_struct().into(),
+            Ty::Model(inner, ..) => {
+                let model_ty = inner.to_rust_struct();
+                quote!(crate::model::#model_ty)
+            }
             Ty::Unit => quote!(()),
             Ty::Any(_) => quote!(serde_json::Value),
             Ty::Date { .. } => quote!(chrono::NaiveDate),
